@@ -1,0 +1,33 @@
+{
+    "name": "benmajor/getaddress-io",
+    "description": "A PHP SDK for use with the getaddress.io postcode lookup API",
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "getaddress.io",
+        "postcode",
+        "postcode lookup"
+    ],
+    "homepage": "https://github.com/benmajor/getaddress-io",
+    "authors": [
+        {
+            "name": "Ben Major",
+            "email": "ben.major88@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/benmajor/getaddress-io/issues",
+        "source": "https://github.com/benmajor/getaddress-io"
+    },
+    "require": {
+        "php": ">= 7.2",
+        "guzzlehttp/guzzle": "~6.0",
+        "symfony/cache": ">=5"
+    },
+    "autoload": {
+        "psr-4": {
+            "BenMajor\\GetAddress\\": "src/"
+        }
+    }
+}
