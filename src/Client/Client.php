@@ -183,7 +183,23 @@ class Client extends AbstractClient implements ClientInterface
      */
     public function getLocation(string $id): Place
     {
-        
+        $endpoint = sprintf('/get-location/%s', $id);
+        $response = $this->getResponse($endpoint);
+
+        // Hydrate the response:
+        return new Place(
+            $response->area,
+            $response->town_or_city,
+            $response->county,
+            $response->country,
+            new Postcode(
+                $response->postcode,
+                new Location(
+                    $response->latitude,
+                    $response->longitude
+                )
+            )
+        );
     }
 
     public function typeahead()
