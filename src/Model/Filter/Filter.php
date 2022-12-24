@@ -6,13 +6,13 @@ use BenMajor\GetAddress\Model\Postcode;
 
 class Filter
 {
-    private ?string $county;
-    private ?string $country;
-    private ?string $area;
-    private ?string $city;
-    private ?Postcode $postcode;
-    private ?string $outcode;
-    private ?FilterRadius $radius;
+    private ?string $county = null;
+    private ?string $country = null;
+    private ?string $area = null;
+    private ?string $city = null;
+    private ?Postcode $postcode = null;
+    private ?string $outcode = null;
+    private ?FilterRadius $radius = null;
 
     public function setCounty(?string $county): self
     {
