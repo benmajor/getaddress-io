@@ -2,7 +2,7 @@
 
 namespace BenMajor\GetAddress\Response;
 
-use BenMajor\GetAddress\Model\Location;
+use BenMajor\GetAddress\Converter\DistanceConverter;
 use BenMajor\GetAddress\Model\Postcode;
 
 class DistanceResponse extends AbstractResponse implements ResponseInterface
@@ -40,19 +40,7 @@ class DistanceResponse extends AbstractResponse implements ResponseInterface
      */
     public function getDistance(string $unit = null): float
     {
-        switch ($unit) {
-            case self::MEASUREMENT_METRES:
-            default:
-                return $this->meters;
-
-            case self::MEASUREMENT_MILES:
-                return $this->meters * 0.000621371;
-
-            case self::MEASUREMENT_FEET:
-                return $this->meters * 3.28084;
-
-            case self::MEASUREMENT_YARDS:
-                return $this->meters * 1.09361;
-        }
+        $converter = new DistanceConverter($this->distance);
+        return $converter->to($unit);
     }
 }
