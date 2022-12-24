@@ -6,8 +6,10 @@ use BenMajor\GetAddress\Exception;
 use BenMajor\GetAddress\FindResponse;
 use BenMajor\GetAddress\Model\Address;
 use BenMajor\GetAddress\Model\Collection;
+use BenMajor\GetAddress\Model\Filter\Filter;
 use BenMajor\GetAddress\Model\Location;
 use BenMajor\GetAddress\Model\Postcode;
+use BenMajor\GetAddress\Model\Suggestion;
 use BenMajor\GetAddress\Response;
 
 class Client extends AbstractClient implements ClientInterface
@@ -57,9 +59,60 @@ class Client extends AbstractClient implements ClientInterface
             ->setOriginalResponse($getAddressResponse);
     }
 
-    public function autocomplete()
-    {
+    /**
+     * Get a list of suggestions for a given search term:
+     * https://documentation.getaddress.io/Autocomplete
+     *
+     * @param string $term
+     * @return Collection
+     */
+    public function autocomplete(
+        string $term,
+        ?Filter $filter = null,
+        int $limit = 6,
+        ?Location $location = null,
+        bool $returnAll = false
+    ): Collection {
+        $endpoint = sprintf('autocomplete/%s', $term);
 
+        $method = 'GET';
+        $body = null;
+
+        if ($filter !== null || $location !== null) {
+            $method = 'POST';
+
+            if ($filter !== null) {
+                $body['filter'] = $filter->toJson();
+            }
+
+            if ($location !== null) {
+                $body['location'] = $location->toJson();
+            }
+        }
+
+        $response = $this->getResponse(
+            $endpoint,
+            $method,
+            [
+                'top' => $limit,
+                'all' => $returnAll ? 'true' : 'false'
+            ],
+            $body
+        );
+
+        $collection = new Collection();
+
+        foreach ($response->suggestions as $suggestion) {
+            $collection->add(
+                new Suggestion(
+                    $suggestion->address,
+                    $suggestion->url,
+                    $suggestion->id
+                )
+            );
+        }
+
+        return $collection;
     }
 
     public function location()
