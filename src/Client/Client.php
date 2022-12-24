@@ -57,6 +57,34 @@ class Client extends AbstractClient implements ClientInterface
             ->setOriginalResponse($getAddressResponse);
     }
 
+    public function autocomplete()
+    {
+
+    }
+
+    public function location()
+    {
+
+    }
+
+    public function typeahead()
+    {
+
+    }
+
+    public function nearest()
+    {
+
+    }
+
+    /**
+     * Find the distance between two postcodes:
+     * https://documentation.getaddress.io/Distance
+     *
+     * @param string $from
+     * @param string $to
+     * @return Response\DistanceResponse
+     */
     public function distance(string $from, string $to): Response\DistanceResponse
     {
         $endpoint = sprintf('distance/%s/%s', $from, $to);
