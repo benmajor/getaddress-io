@@ -2,6 +2,8 @@
 
 namespace BenMajor\GetAddress\Model;
 
+use stdClass;
+
 class Address
 {
     private ?string $thoroughfare;
@@ -19,8 +21,9 @@ class Address
     private ?string $district;
     private ?string $country;
     private array $formatted;
+    private Postcode $postcode;
 
-    public function __construct($address)
+    public function __construct(stdClass $address, Postcode $postcode)
     {
         $this->thoroughfare = empty($address->thoroughfare)
             ? null
@@ -70,6 +73,10 @@ class Address
         $this->county = $address->county;
         $this->country = $address->county;
         $this->formatted = $address->formatted_address;
+        $this->postcode = $postcode;
+
+        // Add the postcode to the formatted array:
+        $this->formatted['postcode'] = $this->postcode->getPostcode();
     }
 
     public function getThoroughfare(): ?string
@@ -140,6 +147,11 @@ class Address
     public function getCountry(): ?string
     {
         return $this->country;
+    }
+
+    public function getPostcode(): Postcode
+    {
+        return $this->postcode;
     }
 
     public function toArray(): array

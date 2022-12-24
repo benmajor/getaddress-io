@@ -12,47 +12,26 @@ class DistanceResponse extends AbstractResponse implements ResponseInterface
     public const MEASUREMENT_FEET = 'feet';
     public const MEASUREMENT_YARDS = 'yards';
 
-    private Location $fromLocation;
-    private Postcode $fromPostcode;
-    private Location $toLocation;
-    private Postcode $toPostcode;
+    private Postcode $from;
+    private Postcode $to;
+    private float $distance;
 
-    private float $meters;
-
-    public function __construct(
-        Postcode $fromPostcode,
-        Location $fromLocation,
-        Postcode $toPostcode,
-        Location $toLocation,
-        float $distance
-    ) {
-        $this->fromLocation = $fromLocation;
-        $this->fromPostcode = $fromPostcode;
-        $this->toLocation = $toLocation;
-        $this->toPostcode = $toPostcode;
-        $this->meters = $distance;
-    }
-
-    public function getFromLocation(): Location
+    public function __construct(Postcode $from, Postcode $to, float $distance)
     {
-        return $this->fromLocation;
+        $this->from = $from;
+        $this->to = $to;
+        $this->distance = $distance;
     }
 
-    public function getFromPostcode(): Postcode
+    public function getFrom(): Postcode
     {
-        return $this->fromPostcode;
+        return $this->from;
     }
 
-    public function getToLocation(): Location
+    public function getTo(): Postcode
     {
-        return $this->toLocation;
+        return $this->to;
     }
-
-    public function getToPostcode(): Postcode
-    {
-        return $this->toPostcode;
-    }
-
     /**
      * Get the distance in the specified measurement
      *

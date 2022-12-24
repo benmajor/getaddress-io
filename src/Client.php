@@ -6,7 +6,6 @@ use BenMajor\GetAddress\Model\Location;
 use BenMajor\GetAddress\Model\Postcode;
 use BenMajor\GetAddress\Model\Address;
 use BenMajor\GetAddress\Model\Collection;
-use BenMajor\GetAddress\Response\ResponseInterface;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter as Cache;
 use Symfony\Contracts\Cache\ItemInterface;
 use GuzzleHttp\Client as HttpClient;
@@ -123,20 +122,22 @@ class Client
 
         $getAddressResponse = $this->getResponse($endpoint);
 
-        $addresses = new Collection();
-
-        foreach ($getAddressResponse->addresses as $gaAddress) {
-            $addresses->add(new Address($gaAddress));
-        }
-
-        return (new Response\FindResponse(
-            new Postcode($getAddressResponse->postcode),
+        $postcode = new Postcode(
+            $getAddressResponse->postcode,
             new Location(
                 $getAddressResponse->latitude,
                 $getAddressResponse->longitude
-            ),
-            $addresses
-        ))->setOriginalResponse($getAddressResponse);
+            )
+        );
+
+        $addresses = new Collection();
+
+        foreach ($getAddressResponse->addresses as $gaAddress) {
+            $addresses->add(new Address($gaAddress, $postcode));
+        }
+
+        return (new Response\FindResponse($postcode, $addresses))
+            ->setOriginalResponse($getAddressResponse);
     }
 
     public function distance(string $from, string $to): Response\DistanceResponse
@@ -145,19 +146,24 @@ class Client
 
         $response = $this->getResponse($endpoint);
 
-        return (new Response\DistanceResponse(
-            new Postcode($response->from->postcode),
+        $from = new Postcode(
+            $response->from->postcode,
             new Location(
                 $response->from->latitude,
                 $response->from->longitude
-            ),
-            new Postcode($response->to->postcode),
+            )
+        );
+
+        $to = new Postcode(
+            $response->to->postcode,
             new Location(
                 $response->to->latitude,
                 $response->to->longitude
-            ),
-            $response->metres
-        ))->setOriginalResponse($response);
+            )
+        );
+
+        return (new Response\DistanceResponse($from, $to, $response->metres))
+            ->setOriginalResponse($response);
     }
 
     /**
@@ -173,7 +179,15 @@ class Client
             sprintf('get/%s', $id)
         );
 
-        return new Address($getAddressResponse);
+        $postcode = new Postcode(
+            $getAddressResponse->postcode,
+            new Location(
+                $getAddressResponse->latitude,
+                $getAddressResponse->longitude
+            )
+        );
+
+        return new Address($getAddressResponse, $postcode);
     }
 
     /**
