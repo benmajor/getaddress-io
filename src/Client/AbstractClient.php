@@ -13,11 +13,16 @@ class AbstractClient implements ClientInterface
 {
     private string $apiKey;
 
-    private HttpClient $client;
+    private Client $client;
 
     private int $cacheTtl = 86400;
     private bool $useCache = true;
     private FilesystemAdapter $cache;
+
+    private const NOCACHE_ENDPOINTS = [
+        'autocomplete',
+        'typeahead'
+    ];
 
     public function __construct(string $apiKey)
     {
@@ -97,12 +102,23 @@ class AbstractClient implements ClientInterface
      * Get the response from GetAddress's API
      *
      * @param string $endpoint
+     * @param string $method
+     * @param array|null $params
+     * @param array|null $body
      * @return stdClass
      */
-    protected function getResponse(string $endpoint): stdClass
-    {
+    protected function getResponse(
+        string $endpoint,
+        string $method = 'GET',
+        ?array $params = null,
+        ?array $body = null
+    ): stdClass {
         try {
-            if ($this->isCachingEnabled() === true) {
+            $endpointSegments = explode('/', $endpoint);
+
+            $useCache = (in_array($endpointSegments[0], self::NOCACHE_ENDPOINTS) === false);
+
+            if ($this->isCachingEnabled() === true && $useCache) {
                 $cacheKey = strtolower(
                     str_replace([ '/', ' ' ], '_', trim($endpoint, '/'))
                 );
@@ -110,11 +126,20 @@ class AbstractClient implements ClientInterface
                 return $this->cache->get($cacheKey, function (ItemInterface $item) use ($endpoint) {
                     $item->expiresAfter($this->cacheTtl);
 
-                    return $this->sendRequest($endpoint);
+                    return $this->sendRequest(
+                        $endpoint,
+                        $method,
+                        $params,
+                        $body
+                    );
                 });
             }
             else {
-                return $this->sendRequest($endpoint);
+                return $this->sendRequest(
+                    $endpoint,
+                    $params,
+                    $method
+                );
             }
         } catch (HttpException $e) {
             switch ($e->getResponse()->getStatusCode()) {
@@ -144,14 +169,28 @@ class AbstractClient implements ClientInterface
      * @param string $endpoint
      * @return stdClass
      */
-    protected function sendRequest(string $endpoint): stdClass
-    {
-        $response = $this->client->request('GET', $endpoint, [
-            'query' => [
-                'api-key' => $this->apiKey,
-                'expand' => 'true'
-            ]
-        ]);
+    protected function sendRequest(
+        string $endpoint,
+        string $method = 'GET',
+        ?array $params = null,
+        ?array $body = null
+    ): stdClass {
+
+        $requestParams = [
+            'query' => ($params !== null && count($params))
+                ? array_merge($params, [ 'api-key' => $this->apiKey, 'expand' => 'true' ])
+                : [ 'api-key' => $this->apiKey, 'expand' => 'true' ]
+        ];
+
+        if ($body !== null && count($body)) {
+            $requestParams['body'] = json_encode($body);
+        }
+
+        $response = $this->client->request(
+            $method,
+            $endpoint,
+            $requestParams
+        );
 
         return json_decode(
             $response->getBody()->getContents(),
