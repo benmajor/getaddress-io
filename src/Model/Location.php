@@ -22,4 +22,12 @@ class Location
     {
         return $this->latitude;
     }
+
+    public function toJson(): array
+    {
+        return [
+            'latitude' => $this->latitude,
+            'longitude' => $this->longitude
+        ];
+    }
 }
