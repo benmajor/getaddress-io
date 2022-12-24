@@ -15,7 +15,7 @@ use stdClass;
 
 class AbstractClient implements ClientInterface
 {
-    private string $apiKey;
+    protected string $apiKey;
 
     private Client $client;
 
