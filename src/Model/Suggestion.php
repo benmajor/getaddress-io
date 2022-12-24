@@ -20,8 +20,8 @@ class Suggestion
         return $this->id;
     }
 
-    public function getFormattedAddress(): string
+    public function getAddress(): string
     {
-        return $this->fomatted;
+        return $this->formatted;
     }
 }
