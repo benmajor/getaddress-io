@@ -109,7 +109,8 @@ class Client extends AbstractClient implements ClientInterface
                 new Suggestion(
                     $suggestion->address,
                     $suggestion->url,
-                    $suggestion->id
+                    $suggestion->id,
+                    Suggestion::TYPE_ADDRESS
                 )
             );
         }
@@ -125,16 +126,52 @@ class Client extends AbstractClient implements ClientInterface
      * @param Filter|null $filter
      * @param int $limit
      * @param Location|null $location
-     * @return Collection<int, Place>
+     * @return Collection<int, Suggestion>
      */
     public function location(
         string $term,
         ?Filter $filter = null,
         int $limit = 6,
         ?Location $location = null
-    ): Collection
-    {
+    ): Collection {
+        $endpoint = sprintf('location/%s', $term);
 
+        $method = 'GET';
+        $body = null;
+
+        if ($filter !== null || $location !== null) {
+            $method = 'POST';
+
+            if ($filter !== null) {
+                $body['filter'] = $filter->toJson();
+            }
+
+            if ($location !== null) {
+                $body['location'] = $location->toJson();
+            }
+        }
+
+        $response = $this->getResponse(
+            $endpoint,
+            $method,
+            [ 'top' => $limit ],
+            $body
+        );
+
+        $collection = new Collection();
+
+        foreach ($response->suggestions as $suggestion) {
+            $collection->add(
+                new Suggestion(
+                    $suggestion->location,
+                    $suggestion->url,
+                    $suggestion->id,
+                    Suggestion::TYPE_PLACE
+                )
+            );
+        }
+
+        return $collection;
     }
 
     /**
@@ -146,7 +183,7 @@ class Client extends AbstractClient implements ClientInterface
      */
     public function getLocation(string $id): Place
     {
-
+        
     }
 
     public function typeahead()
