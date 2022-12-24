@@ -29,6 +29,11 @@ class AdminClient extends AbstractClient implements ClientInterface
 
     }
 
+    public function getInvoice($number)
+    {
+
+    }
+
     public function getInvoiceEmailRecipients()
     {
 
