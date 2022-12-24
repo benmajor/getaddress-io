@@ -6,6 +6,7 @@ class Suggestion
 {
     public const TYPE_ADDRESS = 'address';
     public const TYPE_PLACE = 'place';
+    public const TYPE_NEAREST = 'nearest';
 
     private string $formatted;
     private string $endpoint;
@@ -46,6 +47,11 @@ class Suggestion
     public function isPlace(): bool
     {
         return $this->type === self::TYPE_PLACE;
+    }
+
+    public function isNearest(): bool
+    {
+        return $this->type === self::TYPE_NEAREST;
     }
 
     public function __toString(): string
