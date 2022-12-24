@@ -8,6 +8,7 @@ use BenMajor\GetAddress\Model\Address;
 use BenMajor\GetAddress\Model\Collection;
 use BenMajor\GetAddress\Model\Filter\Filter;
 use BenMajor\GetAddress\Model\Location;
+use BenMajor\GetAddress\Model\Place;
 use BenMajor\GetAddress\Model\Postcode;
 use BenMajor\GetAddress\Model\Suggestion;
 use BenMajor\GetAddress\Response;
@@ -20,6 +21,7 @@ class Client extends AbstractClient implements ClientInterface
      *
      * @param string $postcode
      * @param string|null $property
+     *
      * @return FindResponse
      */
     public function lookup(string $postcode, string $property = null): Response\FindResponse
@@ -64,7 +66,7 @@ class Client extends AbstractClient implements ClientInterface
      * https://documentation.getaddress.io/Autocomplete
      *
      * @param string $term
-     * @return Collection
+     * @return Collection<int, Suggestion>
      */
     public function autocomplete(
         string $term,
@@ -115,7 +117,34 @@ class Client extends AbstractClient implements ClientInterface
         return $collection;
     }
 
-    public function location()
+    /**
+     * Get a list of places matching the specific query:
+     * https://documentation.getaddress.io/Location
+     *
+     * @param string $term
+     * @param Filter|null $filter
+     * @param int $limit
+     * @param Location|null $location
+     * @return Collection<int, Place>
+     */
+    public function location(
+        string $term,
+        ?Filter $filter = null,
+        int $limit = 6,
+        ?Location $location = null
+    ): Collection
+    {
+
+    }
+
+    /**
+     * Retrieve a single location by its ID:
+     * https://documentation.getaddress.io/Location (see Step 2)
+     *
+     * @param string $id
+     * @return Place
+     */
+    public function getLocation(string $id): Place
     {
 
     }
