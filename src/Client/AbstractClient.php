@@ -2,6 +2,10 @@
 
 namespace BenMajor\GetAddress\Client;
 
+use BenMajor\GetAddress\Exception\AuthenticationException;
+use BenMajor\GetAddress\Exception\InvalidPostcodeException;
+use BenMajor\GetAddress\Exception\LookupException;
+use BenMajor\GetAddress\Exception\RateLimitException;
 use Symfony\Component\Cache\Adapter\AbstractAdapter;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
@@ -123,7 +127,7 @@ class AbstractClient implements ClientInterface
                     str_replace([ '/', ' ' ], '_', trim($endpoint, '/'))
                 );
 
-                return $this->cache->get($cacheKey, function (ItemInterface $item) use ($endpoint) {
+                return $this->cache->get($cacheKey, function (ItemInterface $item) use ($endpoint, $method, $params, $body) {
                     $item->expiresAfter($this->cacheTtl);
 
                     return $this->sendRequest(
@@ -137,26 +141,27 @@ class AbstractClient implements ClientInterface
             else {
                 return $this->sendRequest(
                     $endpoint,
+                    $method,
                     $params,
-                    $method
+                    $body
                 );
             }
         } catch (HttpException $e) {
             switch ($e->getResponse()->getStatusCode()) {
                 case 401:
-                    throw new Exception\AuthenticationException('GetAddress.io authentication failed, check API key.');
+                    throw new AuthenticationException('GetAddress.io authentication failed, check API key.');
                     break;
 
                 case 400:
-                    throw new Exception\InvalidPostcodeException('Specified postcode parameter is invalid.');
+                    throw new InvalidPostcodeException('Specified postcode parameter is invalid.');
                     break;
 
                 case 403:
-                    throw new Exception\RateLimitException('GetAddress.io rate limit exceeded.');
+                    throw new RateLimitException('GetAddress.io rate limit exceeded.');
                     break;
 
                 default:
-                    throw new Exception\LookupException(
+                    throw new LookupException(
                         sprintf('GetAddress.io lookup failed: "%s".', $e->getMessage())
                     );
             }
@@ -183,7 +188,7 @@ class AbstractClient implements ClientInterface
         ];
 
         if ($body !== null && count($body)) {
-            $requestParams['body'] = json_encode($body);
+            $requestParams['json'] = $body;
         }
 
         $response = $this->client->request(
