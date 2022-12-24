@@ -10,7 +10,8 @@ use BenMajor\GetAddress\Model\Filter\Filter;
 use BenMajor\GetAddress\Model\Location;
 use BenMajor\GetAddress\Model\Place;
 use BenMajor\GetAddress\Model\Postcode;
-use BenMajor\GetAddress\Model\Suggestion;
+use BenMajor\GetAddress\Model\Suggestion\NearestSuggestion;
+use BenMajor\GetAddress\Model\Suggestion\Suggestion;
 use BenMajor\GetAddress\Response;
 
 class Client extends AbstractClient implements ClientInterface
@@ -207,9 +208,66 @@ class Client extends AbstractClient implements ClientInterface
 
     }
 
-    public function nearest()
-    {
+    /**
+     * Perform a reverse geocode lookup to find the nearest address for a given postcode:
+     * https://documentation.getaddress.io/Nearest
+     *
+     * @param float $latitude
+     * @param float $longitude
+     * @param boolean $residentialOnly
+     * @return Collection
+     */
+    public function nearest(
+        float $latitude,
+        float $longitude,
+        ?int $limit = null,
+        ?float $radius = null,
+        ?bool $residentialOnly = false
+    ): Collection {
+        $endpoint = sprintf('/nearest/%s/%s', $latitude, $longitude);
+        $params = [ ];
+        $body = null;
+        $method = 'GET';
 
+        if ($limit !== null) {
+            $params['limit'] = $limit;
+        }
+
+        if ($radius !== null) {
+            $params['radius'] = $radius;
+        }
+
+        if ($residentialOnly !== null) {
+            $method = 'POST';
+
+            $body['filter'] = [
+                'residential' => ($residentialOnly === true)
+                    ? 'true'
+                    : 'false'
+            ];
+        }
+
+        $response = $this->getResponse(
+            $endpoint,
+            $method,
+            $params,
+            $body
+        );
+
+        $collection = new Collection();
+
+        foreach ($response->suggestions as $suggestion) {
+            $collection->add(
+                new NearestSuggestion(
+                    $suggestion->address,
+                    $suggestion->url,
+                    $suggestion->id,
+                    $suggestion->distance
+                )
+            );
+        }
+
+        return $collection;
     }
 
     /**
