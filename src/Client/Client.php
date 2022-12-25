@@ -203,9 +203,51 @@ class Client extends AbstractClient implements ClientInterface
         );
     }
 
-    public function typeahead()
-    {
+    /**
+     * Retrieve typeahead results from GetAddress's API:
+     * https://documentation.getaddress.io/Typeahead
+     *
+     * @param string $query
+     * @param Filter|null $filter
+     * @param integer|null $limit
+     * @param array|null $fields
+     * @return array
+     */
+    public function typeahead(
+        string $query,
+        ?Filter $filter = null,
+        ?int $limit = null,
+        ?array $fields = null
+    ): array {
+        $endpoint = sprintf('/typeahead/%s/', $query);
+        $body = null;
+        $params = null;
+        $method = 'GET';
 
+        if ($filter !== null || $fields !== null || $limit !== null) {
+            $method = 'POST';
+
+            if ($filter !== null) {
+                $body['filter'] = $filter->toJson();
+            }
+
+            if ($fields !== null) {
+                $body['search'] = $fields;
+            }
+        }
+
+        if ($limit !== null) {
+            $params['top'] = $limit;
+        }
+
+        $response = $this->getResponse(
+            $endpoint,
+            $method,
+            $params,
+            $body
+        );
+
+        return $response->response;
     }
 
     /**
