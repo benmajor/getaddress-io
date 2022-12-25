@@ -197,8 +197,23 @@ class AbstractClient implements ClientInterface
             $requestParams
         );
 
+        $body = $response->getBody()->getContents();
+
+        if (substr($body, 0, 1) === '[' && substr($body, -1, 1) === ']') {
+            $return = new stdClass();
+
+            $return->response = json_decode(
+                $body,
+                false,
+                512,
+                JSON_THROW_ON_ERROR
+            );
+
+            return $return;
+        }
+
         return json_decode(
-            $response->getBody()->getContents(),
+            $body,
             false,
             512,
             JSON_THROW_ON_ERROR
