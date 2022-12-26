@@ -31,7 +31,7 @@ class AbstractClient implements ClientInterface
     public function __construct(string $apiKey)
     {
         $this->apiKey = trim($apiKey);
-        $this->client = new Client([ 'base_uri' => 'https://api.getAddress.io/' ]);
+        $this->client = new Client([ 'base_uri' => 'https://api.getaddress.io/' ]);
         $this->cache = new FilesystemAdapter();
     }
 
