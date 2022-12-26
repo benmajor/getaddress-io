@@ -17,11 +17,11 @@ class AbstractClient implements ClientInterface
 {
     protected string $apiKey;
 
-    private Client $client;
+    protected Client $client;
 
     private int $cacheTtl = 86400;
     private bool $useCache = true;
-    private FilesystemAdapter $cache;
+    protected FilesystemAdapter $cache;
 
     private const NOCACHE_ENDPOINTS = [
         'autocomplete',
@@ -193,7 +193,7 @@ class AbstractClient implements ClientInterface
 
         $response = $this->client->request(
             $method,
-            $endpoint,
+            ltrim($endpoint, '/'),
             $requestParams
         );
 
