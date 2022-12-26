@@ -2,9 +2,27 @@
 
 namespace BenMajor\GetAddress\Client;
 
+use GuzzleHttp\Client;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
+use DateTimeInterface;
+
 class AdminClient extends AbstractClient implements ClientInterface
 {
-    public function getUsage()
+    public const API_VERSION = 3;
+
+    public function __construct(string $apiKey)
+    {
+        $this->apiKey = $apiKey;
+
+        $this->client = new Client([
+            'base_uri' => sprintf('https://api.getAddress.io/v%d/', self::API_VERSION)
+        ]);
+
+        $this->cache = new FilesystemAdapter();
+    }
+
+    public function getUsage(DateTimeInterface $from, ?DateTimeInterface $to = null
+    )
     {
 
     }
@@ -76,6 +94,6 @@ class AdminClient extends AbstractClient implements ClientInterface
 
     public function getSubscription()
     {
-        
+
     }
 }
