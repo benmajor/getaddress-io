@@ -4,7 +4,7 @@ namespace BenMajor\GetAddress\Client;
 
 use BenMajor\GetAddress\Exception;
 use BenMajor\GetAddress\FindResponse;
-use BenMajor\GetAddress\Model\Address;
+use BenMajor\GetAddress\Model\Address\Address;
 use BenMajor\GetAddress\Model\Collection;
 use BenMajor\GetAddress\Model\Filter\Filter;
 use BenMajor\GetAddress\Model\Location;

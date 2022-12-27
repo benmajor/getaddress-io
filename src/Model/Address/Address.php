@@ -1,6 +1,6 @@
 <?php
 
-namespace BenMajor\GetAddress\Model;
+namespace BenMajor\GetAddress\Model\Address;
 
 use stdClass;
 
