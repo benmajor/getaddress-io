@@ -4,6 +4,7 @@ namespace BenMajor\GetAddress\Client;
 
 use BenMajor\GetAddress\Model\Collection;
 use BenMajor\GetAddress\Model\Usage\DailyUsage;
+use BenMajor\GetAddress\Model\Usage\Usage;
 use GuzzleHttp\Client;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use DateTime;
@@ -73,7 +74,22 @@ class AdminClient extends AbstractClient implements ClientInterface
             $to->format('Y')
         );
 
-        // TODO: finalise
+        // Get the results:
+        $response = $this->getResponse($endpoint);
+
+        $collection = new Collection();
+
+        foreach ($response->response as $item) {
+            $collection->add(
+                new Usage(
+                    new DateTime($item->date),
+                    $item->limit,
+                    $item->count
+                )
+            );
+        }
+
+        return $collection;
     }
 
     public function addAddress()
