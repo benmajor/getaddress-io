@@ -2,11 +2,12 @@
 
 namespace BenMajor\GetAddress\Client;
 
+use BenMajor\GetAddress\Model\Address\PrivateAddress;
 use BenMajor\GetAddress\Model\Collection;
+use BenMajor\GetAddress\Model\EmailAddress;
+use BenMajor\GetAddress\Model\Subscription\Subscription;
 use BenMajor\GetAddress\Model\Usage\DailyUsage;
 use BenMajor\GetAddress\Model\Usage\Usage;
-use GuzzleHttp\Client;
-use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use DateTime;
 use DateTimeInterface;
 use InvalidArgumentException;
@@ -87,19 +88,56 @@ class AdminClient extends AbstractClient implements ClientInterface
         return $collection;
     }
 
-    public function addAddress()
-    {
+    // public function getPrivateAddresses(): Collection
+    // {
 
+    // }
+
+    // public function getPrivateAddress(int $id): PrivateAddress
+    // {
+
+    // }
+
+    // public function addPrivateAddress(PrivateAddress $address): PrivateAddress
+    // {
+
+    // }
+
+    // public function deletePrivateAddress(PrivateAddress $address): bool
+    // {
+
+    // }
+
+    /**
+     * Get the acocunt's primary email address:
+     * https://documentation.getaddress.io/EmailAddress
+     *
+     * @return EmailAddress
+     */
+    public function getEmailAddress(): EmailAddress
+    {
+        $response = $this->getResponse('/email-address');
+
+        return new EmailAddress($response->{'email-address'});
     }
 
-    public function getEmailAddress()
+
+    public function setEmailAddress(EmailAddress $email): bool
     {
+        if ($email->isValid() === false) {
+            throw new InvalidArgumentException('Specified email address is invalid.');
+        }
 
-    }
+        $response = $this->getResponse(
+            '/email-address',
+            'PUT',
+            null,
+            [
+                'new-email-address' => $email->getEmailAddress()
+            ]
+        );
 
-    public function setEmailAddress()
-    {
-
+        return true;
     }
 
     public function getInvoices()
@@ -152,7 +190,7 @@ class AdminClient extends AbstractClient implements ClientInterface
 
     }
 
-    public function getSubscription()
+    public function getSubscription(): Subscription
     {
 
     }
