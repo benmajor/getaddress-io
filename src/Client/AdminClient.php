@@ -17,19 +17,13 @@ class AdminClient extends AbstractClient implements ClientInterface
 
     public function __construct(string $apiKey)
     {
-        $this->apiKey = $apiKey;
-        $this->cache = new FilesystemAdapter();
-
-        $this->client = new Client([
-            'base_uri' => sprintf('https://api.getAddress.io/v%d/', self::API_VERSION)
-        ]);
-
+        parent::__construct($apiKey);
         $this->disableCaching();
     }
 
     public function getDailyUsage(?DateTimeInterface $date = null): DailyUsage
     {
-        $endpoint = '/usage';
+        $endpoint = sprintf('/v%d/usage', self::API_VERSION);
 
         if ($date !== null) {
             $endpoint .= sprintf(
@@ -65,7 +59,8 @@ class AdminClient extends AbstractClient implements ClientInterface
         }
 
         $endpoint = sprintf(
-            '/usage/from/%d/%d/%d/to/%d/%d/%d/',
+            '/v%d/usage/from/%d/%d/%d/to/%d/%d/%d/',
+            self::API_VERSION,
             $from->format('d'),
             $from->format('m'),
             $from->format('Y'),
