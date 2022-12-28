@@ -4,7 +4,7 @@ namespace BenMajor\GetAddress\Model\Invoice;
 
 use BenMajor\GetAddress\Model\Collection;
 use DateTimeInterface;
-use DateTimeImmutable;
+use DateTime;
 
 class Invoice
 {
@@ -17,7 +17,7 @@ class Invoice
     private Collection $items;
 
     public function __construct(
-        string $date,
+        DateTimeInterface $date,
         BillingAddress $billingAddress,
         string $number,
         float $total,
@@ -31,11 +31,7 @@ class Invoice
         $this->tax = $tax;
         $this->pdfUrl = $pdfUrl;
         $this->items = $items;
-
-        $this->date = DateTimeImmutable::createFromFormat(
-            'd/m/ Y h:i:s A',
-            $date
-        );
+        $this->date = $date;
     }
 
     public function getDate(): DateTimeInterface

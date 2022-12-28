@@ -5,7 +5,11 @@ namespace BenMajor\GetAddress\Client;
 use BenMajor\GetAddress\Model\Address\PrivateAddress;
 use BenMajor\GetAddress\Model\Collection;
 use BenMajor\GetAddress\Model\EmailAddress;
+use BenMajor\GetAddress\Model\Invoice\BillingAddress;
+use BenMajor\GetAddress\Model\Invoice\Invoice;
+use BenMajor\GetAddress\Model\Invoice\InvoiceItem;
 use BenMajor\GetAddress\Model\Subscription\Subscription;
+use BenMajor\GetAddress\Model\Subscription\SubscriptionPlan;
 use BenMajor\GetAddress\Model\Usage\DailyUsage;
 use BenMajor\GetAddress\Model\Usage\Usage;
 use DateTime;
@@ -121,7 +125,13 @@ class AdminClient extends AbstractClient implements ClientInterface
         return new EmailAddress($response->{'email-address'});
     }
 
-
+    /**
+     * Update the account's primary email address:
+     * https://documentation.getaddress.io/EmailAddress
+     *
+     * @param EmailAddress $email
+     * @return boolean
+     */
     public function setEmailAddress(EmailAddress $email): bool
     {
         if ($email->isValid() === false) {
@@ -140,14 +150,114 @@ class AdminClient extends AbstractClient implements ClientInterface
         return true;
     }
 
-    public function getInvoices()
+    /**
+     * Retrieve a collection of invoices between the specified dates:
+     * https://documentation.getaddress.io/Invoices
+     *
+     * @param DateTimeInterface $from
+     * @param DateTimeInterface $to
+     * @return Collection
+     */
+    public function getInvoices(DateTimeInterface $from, DateTimeInterface $to): Collection
     {
+        $endpoint = sprintf(
+            '/invoices/from/%d/%d/%d/to/%d/%d/%d',
+            $from->format('d'),
+            $from->format('m'),
+            $from->format('Y'),
+            $to->format('d'),
+            $to->format('m'),
+            $to->format('Y')
+        );
 
+        $response = $this->getResponse($endpoint);
+        $collection = new Collection();
+
+        foreach ($response->response as $inv) {
+            $date = new DateTime($inv->date);
+            $billingAddress = new BillingAddress(
+                $inv->address_1,
+                $inv->address_2,
+                $inv->address_3,
+                $inv->address_4,
+                $inv->address_5,
+                $inv->address_6
+            );
+
+            $items = new Collection();
+
+            foreach ($inv->invoice_lines as $item) {
+                $items->add(
+                    new InvoiceItem(
+                        $item->details,
+                        $item->quantity,
+                        $item->unit_price,
+                        $item->subtotal
+                    )
+                );
+            }
+
+            $collection->add(
+                new Invoice(
+                    $date,
+                    $billingAddress,
+                    $inv->number,
+                    $inv->total,
+                    $inv->tax,
+                    $inv->pdf_url,
+                    $items
+                )
+            );
+        }
+
+        return $collection;
     }
 
-    public function getInvoice($number)
+    /**
+     * Retrieve the specified invoice:
+     * https://documentation.getaddress.io/Invoices
+     *
+     * @param string $number
+     * @return Invoice
+     */
+    public function getInvoice(string $number): Invoice
     {
+        $inv = $this->getResponse(
+            sprintf('/invoices/%s', $number)
+        );
 
+        $date = new DateTime($inv->date);
+        $billingAddress = new BillingAddress(
+            $inv->address_1,
+            $inv->address_2,
+            $inv->address_3,
+            $inv->address_4,
+            $inv->address_5,
+            $inv->address_6
+        );
+
+        $items = new Collection();
+
+        foreach ($inv->invoice_lines as $item) {
+            $items->add(
+                new InvoiceItem(
+                    $item->details,
+                    $item->quantity,
+                    $item->unit_price,
+                    $item->subtotal
+                )
+            );
+        }
+
+        return new Invoice(
+            $date,
+            $billingAddress,
+            $inv->number,
+            $inv->total,
+            $inv->tax,
+            $inv->pdf_url,
+            $items
+        );
     }
 
     public function getInvoiceEmailRecipients()
@@ -192,6 +302,33 @@ class AdminClient extends AbstractClient implements ClientInterface
 
     public function getSubscription(): Subscription
     {
+        $response = $this->getResponse('/subscription');
 
+        $plan = new SubscriptionPlan(
+            $response->plan->term,
+            $response->plan->daily_lookup_limit_1,
+            $response->plan->daily_lookup_limit_2,
+            $response->plan->amount,
+            $response->plan->multi_application
+        );
+
+        $startDate = DateTime::createFromFormat(
+            'm/d/ Y h:i:s A',
+            $response->start_date
+        );
+
+        $nextBillingDate = DateTime::createFromFormat(
+            'm/d/ Y h:i:s A',
+            $response->next_billing_date
+        );
+
+        return new Subscription(
+            $nextBillingDate,
+            $startDate,
+            $response->status,
+            $response->payment_method,
+            $response->name,
+            $plan
+        );
     }
 }
