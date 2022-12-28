@@ -7,9 +7,9 @@ class Postcode
     private string $postcode;
     private string $outcode;
     private string $incode;
-    private Location $location;
+    private ?Location $location;
 
-    public function __construct(string $postcode, Location $location)
+    public function __construct(string $postcode, ?Location $location = null)
     {
         $clean = strtoupper(preg_replace("/[^A-Za-z0-9]/", '', $postcode));
 
@@ -41,7 +41,7 @@ class Postcode
         return $this->incode;
     }
 
-    public function getLocation(): Location
+    public function getLocation(): ?Location
     {
         return $this->location;
     }

@@ -4,6 +4,7 @@ namespace BenMajor\GetAddress\Client;
 
 use BenMajor\GetAddress\Model\Address\PrivateAddress;
 use BenMajor\GetAddress\Model\Collection;
+use BenMajor\GetAddress\Model\Postcode;
 use BenMajor\GetAddress\Model\EmailAddress;
 use BenMajor\GetAddress\Model\Invoice\BillingAddress;
 use BenMajor\GetAddress\Model\Invoice\Invoice;
@@ -92,25 +93,119 @@ class AdminClient extends AbstractClient implements ClientInterface
         return $collection;
     }
 
-    // public function getPrivateAddresses(): Collection
-    // {
+    /**
+     * Get a list of private addresses for the specified postcode:
+     * https://documentation.getaddress.io/AddAddress
+     *
+     * @param Postcode $postcode
+     * @return Collection
+     */
+    public function getPrivateAddresses(Postcode $postcode): Collection
+    {
+        $response = $this->getResponse(
+            sprintf('/private-address/%s', $postcode->getPostcode())
+        );
 
-    // }
+        $collection = new Collection();
 
-    // public function getPrivateAddress(int $id): PrivateAddress
-    // {
+        foreach ($response->response as $address) {
+            $collection->add(
+                new PrivateAddress(
+                    (int) $address->id,
+                    $address->line1,
+                    $address->line2,
+                    $address->line3,
+                    $address->line4,
+                    $address->locality,
+                    $address->townOrCity,
+                    $address->county,
+                    $postcode
+                )
+            );
+        }
 
-    // }
+        return $collection;
+    }
 
-    // public function addPrivateAddress(PrivateAddress $address): PrivateAddress
-    // {
+    /**
+     * Get the specified private address by its ID:
+     * https://documentation.getaddress.io/AddAddress
+     *
+     * @param Postcode $postcode
+     * @param integer $id
+     * @return PrivateAddress
+     */
+    public function getPrivateAddress(Postcode $postcode, int $id): PrivateAddress
+    {
+        $address = $this->getResponse(
+            sprintf(
+                '/private-address/%s/%d',
+                $postcode->getPostcode(),
+                $id
+            )
+        );
 
-    // }
+        return new PrivateAddress(
+            (int) $address->id,
+            $address->line1,
+            $address->line2,
+            $address->line3,
+            $address->line4,
+            $address->locality,
+            $address->townOrCity,
+            $address->county,
+            $postcode
+        );
+    }
 
-    // public function deletePrivateAddress(PrivateAddress $address): bool
-    // {
+    /**
+     * Add the specified private address to the postcode
+     * https://documentation.getaddress.io/AddAddress
+     *
+     * @param PrivateAddress $address
+     * @param Postcode $postcode
+     * @return boolean
+     */
+    public function addPrivateAddress(PrivateAddress &$address, Postcode $postcode): bool
+    {
+        $endpoint = sprintf('/private-address/%s', $postcode->getPostcode());
+        $body = $address->toArray();
 
-    // }
+        $response = $this->getResponse(
+            $endpoint,
+            'POST',
+            null,
+            $body
+        );
+
+        if ($response->id) {
+            $address->setId($response->id);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Delete the specified private address from the postcode.
+     *
+     * @param PrivateAddress $address
+     * @param Postcode $postcode
+     * @return boolean
+     */
+    public function deletePrivateAddress(PrivateAddress $address, Postcode $postcode): bool
+    {
+        $endpoint = sprintf(
+            '/private-address/%s/%d',
+            $postcode->getPostcode(),
+            $address->getId()
+        );
+
+        $this->getResponse($endpoint, 'DELETE');
+
+        return true;
+    }
 
     /**
      * Get the acocunt's primary email address:
