@@ -260,44 +260,186 @@ class AdminClient extends AbstractClient implements ClientInterface
         );
     }
 
-    public function getInvoiceEmailRecipients()
+    /**
+     * Get all CC'd invoice email address:
+     * https://documentation.getaddress.io/InvoiceEmailRecipients
+     *
+     * @return Collection
+     */
+    public function getInvoiceEmailRecipients(): Collection
     {
+        $response = $this->getResponse('/cc/invoices');
+        $collection = new Collection();
 
+        foreach ($response->response as $address) {
+            $collection->add(
+                new EmailAddress(
+                    $address->{'email-address'},
+                    $address->id
+                )
+            );
+        }
+
+        return $collection;
     }
 
-    public function getInvoiceEmailRecipient(int $id)
+    /**
+     * Get an invoice CC address by ID:
+     * https://documentation.getaddress.io/InvoiceEmailRecipients
+     *
+     * @param integer $id
+     * @return EmailAddress
+     */
+    public function getInvoiceEmailRecipient(int $id): EmailAddress
     {
+        $response = $this->getResponse(
+            sprintf('/cc/invoices/%d', $id)
+        );
 
+        return new EmailAddress(
+            $response->{'email-address'},
+            $response->id
+        );
     }
 
-    public function addInvoiceEmailRecipient(string $email)
+    /**
+     * Add a new invoice CC email:
+     * https://documentation.getaddress.io/InvoiceEmailRecipients
+     *
+     * @param EmailAddress $email
+     * @return boolean
+     */
+    public function addInvoiceEmailRecipient(EmailAddress &$email): bool
     {
+        $request = [
+            'email-address' => $email->getEmailAddress()
+        ];
 
+        $response = $this->getResponse(
+            '/cc/invoices',
+            'POST',
+            null,
+            $request
+        );
+
+        if ($response->id) {
+            $email->setId($response->id);
+            return true;
+        }
+
+        return false;
     }
 
-    public function deleteInvoiceEmailRecipient(int $id)
+    /**
+     * Delete the specified invoice CC email:
+     * https://documentation.getaddress.io/InvoiceEmailRecipients
+     *
+     * @param EmailAddress $id
+     * @return boolean
+     */
+    public function deleteInvoiceEmailRecipient(EmailAddress $email): bool
     {
+        $endpoint = sprintf(
+            '/cc/invoices/%d',
+            $email->getId()
+        );
 
+        $this->getResponse($endpoint, 'DELETE');
+
+        return true;
     }
 
-    public function getExpiredInvoiceEmailRecipients()
+    /**
+     * Get a list of expired CC email addresses:
+     * https://documentation.getaddress.io/ExpiredEmailRecipients
+     *
+     * @return Collection
+     */
+    public function getExpiredInvoiceEmailRecipients(): Collection
     {
+        $response = $this->getResponse('/cc/expired');
+        $collection = new Collection();
 
+        foreach ($response->response as $address) {
+            $collection->add(
+                new EmailAddress(
+                    $address->{'email-address'},
+                    $address->id
+                )
+            );
+        }
+
+        return $collection;
     }
 
-    public function getExpiredInvoiceEmailRecipient(int $id)
+    /**
+     * Get a specific expired CC email address:
+     * https://documentation.getaddress.io/ExpiredEmailRecipients
+     *
+     * @param integer $id
+     * @return EmailAddress
+     */
+    public function getExpiredInvoiceEmailRecipient(int $id): EmailAddress
     {
+        $response = $this->getResponse(
+            sprintf('/cc/expired/%d', $id)
+        );
 
+        return new EmailAddress(
+            $response->{'email-address'},
+            $response->id
+        );
     }
 
-    public function addExpiredInvoiceEmailRecipient(string $email)
+    /**
+     * Add a new expired CC email address:
+     * https://documentation.getaddress.io/ExpiredEmailRecipients
+     *
+     * @param EmailAddress $email
+     * @return boolean
+     */
+    public function addExpiredInvoiceEmailRecipient(EmailAddress &$email): bool
     {
+        $request = [
+            'email-address' => $email->getEmailAddress()
+        ];
 
+        $response = $this->getResponse(
+            '/cc/expired',
+            'POST',
+            null,
+            $request
+        );
+
+        if ($response->id) {
+            $email->setId($response->id);
+            return true;
+        }
+
+        return false;
     }
 
-    public function deleteExpiredInvoiceEmailRecipient(int $id)
+    /**
+     * Delete the specified expired CC email address:
+     * https://documentation.getaddress.io/ExpiredEmailRecipients
+     *
+     * @param EmailAddress $email
+     * @return boolean
+     */
+    public function deleteExpiredInvoiceEmailRecipient(EmailAddress $email): bool
     {
+        if ($email->getId() === null) {
+            throw new InvalidArgumentException('The specified email address does not have an ID.');
+        }
 
+        $endpoint = sprintf(
+            '/cc/expired/%d',
+            $email->getId()
+        );
+
+        $this->getResponse($endpoint, 'DELETE');
+
+        return true;
     }
 
     public function getSubscription(): Subscription
